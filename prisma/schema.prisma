@@ -1,0 +1,253 @@
+// Phase 4 adds: Order + OrderItem, and links them to User/Product/ProductVariant.
+// Everything else is unchanged from Phase 3.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  STAFF
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+
+  cart         Cart?
+  orders       Order[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  imageUrl String?
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id                String            @id @default(cuid())
+  slug              String            @unique
+  name              String
+  shortDescription  String
+  description       String
+  mrp               Decimal           @db.Decimal(10, 2)
+  price             Decimal           @db.Decimal(10, 2)
+  tags              String[]
+  isNewArrival      Boolean           @default(false)
+  isBestSeller      Boolean           @default(false)
+  isFeatured        Boolean           @default(false)
+  status            ProductStatus     @default(DRAFT)
+
+  category          Category          @relation(fields: [categoryId], references: [id])
+  categoryId        String
+
+  images            ProductImage[]
+  variants          ProductVariant[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([categoryId])
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  publicId  String? // Cloudinary public_id, needed to delete the asset from storage
+  position  Int     @default(0)
+  isPrimary Boolean @default(false)
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  @@index([productId])
+}
+
+model ProductVariant {
+  id        String      @id @default(cuid())
+  sku       String      @unique
+  label     String
+  price     Decimal     @db.Decimal(10, 2)
+  stock     Int         @default(0)
+
+  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  cartItems CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String     @unique
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  quantity  Int            @default(1)
+
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId    String
+
+  product   Product        @relation(fields: [productId], references: [id])
+  productId String
+
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  variantId String
+
+  @@unique([cartId, variantId])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  orderNumber   String        @unique
+
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+
+  subtotal      Decimal       @db.Decimal(10, 2)
+  discount      Decimal       @db.Decimal(10, 2) @default(0)
+  shipping      Decimal       @db.Decimal(10, 2) @default(0)
+  total         Decimal       @db.Decimal(10, 2)
+
+  coupon        Coupon?       @relation(fields: [couponId], references: [id])
+  couponId      String?
+  couponCode    String?       // snapshot — kept even if the coupon is later edited/deleted
+
+  shippingName      String
+  shippingPhone     String
+  shippingLine1     String
+  shippingLine2     String?
+  shippingCity      String
+  shippingState     String
+  shippingPincode   String
+
+  razorpayOrderId   String?   @unique
+  razorpayPaymentId String?
+
+  items         OrderItem[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id           String         @id @default(cuid())
+
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      String
+
+  product      Product        @relation(fields: [productId], references: [id])
+  productId    String
+
+  variant      ProductVariant @relation(fields: [variantId], references: [id])
+  variantId    String
+
+  // Snapshots taken at order time, so later price/name edits on the
+  // product don't rewrite history on past orders.
+  productName  String
+  variantLabel String
+  price        Decimal        @db.Decimal(10, 2)
+  quantity     Int
+
+  @@index([orderId])
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id               String       @id @default(cuid())
+  code             String       @unique // stored uppercase, matched case-insensitively
+  discountType     DiscountType
+  percentage       Decimal?     @db.Decimal(5, 2)  // used when discountType = PERCENTAGE
+  fixedAmount      Decimal?     @db.Decimal(10, 2) // used when discountType = FIXED
+  minOrderValue    Decimal?     @db.Decimal(10, 2)
+  maxDiscount      Decimal?     @db.Decimal(10, 2) // caps a PERCENTAGE discount in rupees
+  startDate        DateTime
+  expiryDate       DateTime
+  usageLimit       Int?         // total redemptions allowed across all customers
+  perCustomerLimit Int?         // redemptions allowed per customer
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+
+  orders           Order[]
+  usages           CouponUsage[]
+
+  @@index([code])
+}
+
+model CouponUsage {
+  id       String   @id @default(cuid())
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  couponId String
+  userId   String
+  orderId  String
+  usedAt   DateTime @default(now())
+
+  @@index([couponId, userId])
+}
+
+model ContactEnquiry {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String?
+  message    String
+  isResolved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([isResolved])
+}
+
