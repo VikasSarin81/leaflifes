@@ -5,4 +5,11 @@ images uploading on cloudnary server with username as vikas.sarin81@gmail.com
 domain www.leaflifes.com is on hotinger with username as vikas.sarin81@gmail.com
 razorpay is on vikassariofficial@gmail.om
 
+netlify.com  with github 
+
+
+In your terminal: git add . then git commit -m "describe what you changed" then git push
+
+check in verel
+
 

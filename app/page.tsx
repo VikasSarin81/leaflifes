@@ -3,6 +3,11 @@ import Image from "next/image";
 import { getProducts } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 
+// This page queries the database on every request rather than being frozen
+// at build time — needed since product/stock data changes constantly, and
+// it also avoids the build itself needing a live database connection.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const bestSellers = (await getProducts()).filter((p) => p.isBestSeller);
 

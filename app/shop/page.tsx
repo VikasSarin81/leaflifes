@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getCategories, getProducts } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 
+export const dynamic = "force-dynamic";
+
 type Sort = "newest" | "price-asc" | "price-desc" | "rating";
 
 export default async function ShopPage({

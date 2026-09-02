@@ -10,6 +10,14 @@
 .env.local
 .env*.local
 
+# API key exports (Razorpay/Cloudinary sometimes offer CSV downloads —
+# never let these sit in the repo)
+*.csv
+rzp-key*
+
+# Netlify build artifacts — never commit these, they can contain bundled secrets
+.netlify/
+
 # misc
 .DS_Store
 *.log

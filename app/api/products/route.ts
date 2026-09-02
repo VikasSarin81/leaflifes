@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getProducts } from "@/lib/products";
 
+export const dynamic = "force-dynamic";
+
 // This route runs on the server, so it's safe for it to call Prisma.
 // Client components (like the cart page) fetch this URL instead of
 // importing lib/products.ts directly.
