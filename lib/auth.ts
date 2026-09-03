@@ -29,6 +29,13 @@ export const authOptions: NextAuthOptions = {
         );
         if (!valid) return null;
 
+        // Only customers go through email verification — admin/staff
+        // accounts are created directly (seed script, Prisma Studio), not
+        // self-registered, so there's no unverified-email risk for them.
+        if (user.role === "CUSTOMER" && !user.emailVerified) {
+          throw new Error("EMAIL_NOT_VERIFIED");
+        }
+
         return {
           id: user.id,
           name: user.name,

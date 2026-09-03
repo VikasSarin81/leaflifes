@@ -166,6 +166,17 @@ async function main() {
 
   console.log(`Seeded ${categories.length} categories and ${products.length} products.`);
   console.log("Admin login: admin@leaflife.com / ChangeMe123! — change this after first login.");
+
+  // One-time backfill: mark any customer who registered before email
+  // verification existed as already verified, so nobody who signed up
+  // pre-launch gets locked out of an account they've been using fine.
+  const backfilled = await prisma.user.updateMany({
+    where: { role: "CUSTOMER", emailVerified: null },
+    data: { emailVerified: new Date() },
+  });
+  if (backfilled.count > 0) {
+    console.log(`Backfilled emailVerified for ${backfilled.count} existing customer account(s).`);
+  }
 }
 
 main()

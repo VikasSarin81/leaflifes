@@ -1,16 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const verify = searchParams.get("verify");
+    if (verify === "success") {
+      setNotice("Email verified — you can log in now.");
+    } else if (verify === "expired") {
+      setError("That verification link has expired. Register again to get a new one.");
+    } else if (verify === "missing") {
+      setError("That verification link looks broken. Try registering again.");
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,6 +38,12 @@ export default function LoginPage() {
 
     setLoading(false);
 
+    if (res?.error === "EMAIL_NOT_VERIFIED") {
+      setError(
+        "Please verify your email before logging in — check the link we sent when you registered."
+      );
+      return;
+    }
     if (res?.error) {
       setError("That email or password doesn't match an account.");
       return;
@@ -36,6 +55,10 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-sm px-6 py-16">
       <h1 className="font-display text-2xl text-ink">Log in</h1>
+
+      {notice && (
+        <p className="mt-4 rounded bg-moss/10 px-3 py-2 text-sm text-moss-dark">{notice}</p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>

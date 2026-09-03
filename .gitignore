@@ -18,6 +18,11 @@ rzp-key*
 # Netlify build artifacts — never commit these, they can contain bundled secrets
 .netlify/
 
+# Personal notes files that sometimes end up holding real credentials —
+# never let these into the repo
+adminuser.txt
+*-key*.csv
+
 # misc
 .DS_Store
 *.log

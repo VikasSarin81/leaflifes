@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function POST(req: Request) {
   const { name, email, password } = await req.json();
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       name: name || null,
       email: normalizedEmail,
@@ -35,5 +37,30 @@ export async function POST(req: Request) {
     },
   });
 
+  const token = crypto.randomBytes(32).toString("hex");
+  await prisma.verificationToken.create({
+    data: {
+      userId: user.id,
+      token,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+    },
+  });
+
+  const verifyUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${token}`;
+
+  try {
+    await sendVerificationEmail(normalizedEmail, verifyUrl);
+  } catch (err) {
+    // The account still exists — the person can request another email later.
+    // We don't fail registration outright just because the email send hiccuped,
+    // but we do tell them clearly so they're not left wondering why login fails.
+    console.error("Failed to send verification email:", err);
+    return NextResponse.json({
+      ok: true,
+      warning: "Account created, but the verification email couldn't be sent. Please contact support.",
+    });
+  }
+
   return NextResponse.json({ ok: true });
 }
+

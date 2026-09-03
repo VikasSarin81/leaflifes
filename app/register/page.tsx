@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,18 +22,31 @@ export default function RegisterPage() {
       body: JSON.stringify({ name, email, password }),
     });
     const data = await res.json();
+    setLoading(false);
 
     if (!res.ok) {
       setError(data.error ?? "Something went wrong. Try again.");
-      setLoading(false);
       return;
     }
 
-    // Auto-login right after signup so the person doesn't have to log in twice
-    await signIn("credentials", { email, password, redirect: false });
-    setLoading(false);
-    router.push("/account");
-    router.refresh();
+    // Accounts now require clicking an email link before they can log in,
+    // so there's nothing to sign into yet — show a clear next step instead.
+    setSubmittedEmail(email);
+  }
+
+  if (submittedEmail) {
+    return (
+      <div className="mx-auto max-w-sm px-6 py-16 text-center">
+        <h1 className="font-display text-2xl text-ink">Check your email</h1>
+        <p className="mt-4 text-sm text-ink/70">
+          We sent a verification link to <strong>{submittedEmail}</strong>.
+          Click it to activate your account, then come back and log in.
+        </p>
+        <Link href="/login" className="mt-6 inline-block text-sm underline hover:text-moss">
+          Go to login
+        </Link>
+      </div>
+    );
   }
 
   return (
