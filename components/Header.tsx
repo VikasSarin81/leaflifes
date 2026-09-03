@@ -5,7 +5,11 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/lib/cart-context";
 
-export default function Header() {
+export default function Header({
+  categories,
+}: {
+  categories: { name: string; slug: string }[];
+}) {
   const { itemCount } = useCart();
   const { data: session, status } = useSession();
 
@@ -27,15 +31,15 @@ export default function Header() {
           <Link href="/shop" className="hover:text-moss">
             Shop
           </Link>
-          <Link href="/shop?category=skin-care" className="hover:text-moss">
-            Skin
-          </Link>
-          <Link href="/shop?category=hair-care" className="hover:text-moss">
-            Hair
-          </Link>
-          <Link href="/shop?category=wellness" className="hover:text-moss">
-            Wellness
-          </Link>
+          {categories.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/shop?category=${cat.slug}`}
+              className="hover:text-moss"
+            >
+              {cat.name}
+            </Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-4">

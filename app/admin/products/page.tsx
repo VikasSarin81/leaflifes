@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import StockQuickEdit from "@/components/admin/StockQuickEdit";
+import DeleteProductButton from "@/components/admin/DeleteProductButton";
 
 export default async function AdminProductsPage({
   searchParams,
@@ -101,12 +102,15 @@ export default async function AdminProductsPage({
                     </span>
                   </td>
                   <td className="p-3 text-right">
-                    <Link
-                      href={`/admin/products/${p.id}/edit`}
-                      className="text-moss-dark underline"
-                    >
-                      Edit
-                    </Link>
+                    <div className="flex items-center justify-end gap-3">
+                      <Link
+                        href={`/admin/products/${p.id}/edit`}
+                        className="text-moss-dark underline"
+                      >
+                        Edit
+                      </Link>
+                      <DeleteProductButton productId={p.id} productName={p.name} />
+                    </div>
                   </td>
                 </tr>
               );

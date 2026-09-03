@@ -5,6 +5,7 @@ import { CartProvider } from "@/lib/cart-context";
 import AuthProvider from "@/components/AuthProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { prisma } from "@/lib/prisma";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -23,17 +24,25 @@ export const metadata: Metadata = {
     "Cold-pressed, hand-blended, unnecessarily-labeled-natural skin, hair, and wellness products.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Fetched here (a Server Component) so Header — a Client Component, since
+  // it needs session/cart state — always shows real, current categories
+  // instead of hardcoded links that drift out of sync with the database.
+  const categories = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+    select: { name: true, slug: true },
+  });
+
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <AuthProvider>
           <CartProvider>
-            <Header />
+            <Header categories={categories} />
             <main>{children}</main>
             <Footer />
           </CartProvider>
