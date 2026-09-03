@@ -263,3 +263,16 @@ model VerificationToken {
   @@index([userId])
 }
 
+model Banner {
+  // Singleton row — one homepage hero at a time. Simpler than a full list
+  // for now; can be expanded to multiple rotating banners later if needed.
+  id          String   @id @default("hero")
+  imageUrl    String?
+  imagePublicId String?
+  headline    String
+  description String
+  buttonText  String
+  buttonUrl   String
+  updatedAt   DateTime @updatedAt
+}
+

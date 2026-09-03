@@ -1,20 +1,32 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// Sends mail through your actual Hostinger mailbox via SMTP, rather than
+// a third-party sending service — this means the "From" address is a real
+// inbox you own (e.g. orders@leaflifes.com) instead of a generic sender.
+const transporter =
+  process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD
+    ? nodemailer.createTransport({
+        host: process.env.SMTP_HOST, // smtp.hostinger.com
+        port: Number(process.env.SMTP_PORT || 465),
+        secure: Number(process.env.SMTP_PORT || 465) === 465, // true for port 465 (SSL), false for 587 (STARTTLS)
+        auth: {
+          user: process.env.SMTP_USER, // full mailbox address, e.g. orders@leaflifes.com
+          pass: process.env.SMTP_PASSWORD,
+        },
+      })
+    : null;
 
 export async function sendVerificationEmail(to: string, verifyUrl: string) {
-  if (!resend) {
-    // Fail loudly in logs rather than silently pretending an email went out —
-    // this is exactly the kind of thing that's easy to miss in production.
+  if (!transporter) {
     console.error(
-      "RESEND_API_KEY is not set — verification email was NOT sent to",
+      "SMTP is not configured (SMTP_HOST/SMTP_USER/SMTP_PASSWORD) — verification email was NOT sent to",
       to
     );
     throw new Error("Email service is not configured.");
   }
 
-  await resend.emails.send({
-    from: process.env.EMAIL_FROM || "LEAFLIFE <onboarding@resend.dev>",
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
     to,
     subject: "Verify your email — LEAFLIFE",
     html: `
