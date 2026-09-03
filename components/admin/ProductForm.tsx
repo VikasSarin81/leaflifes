@@ -372,6 +372,15 @@ export default function ProductForm({
         <div>
           <p className="text-sm text-ink/60">Variants</p>
           <div className="mt-2 grid gap-2">
+            {values.variants.length > 0 && (
+              <div className="grid grid-cols-[1fr_1fr_100px_80px_auto] gap-2 px-1 text-xs font-medium text-ink/50">
+                <span>Label</span>
+                <span>SKU</span>
+                <span>Price (₹)</span>
+                <span>Stock</span>
+                <span></span>
+              </div>
+            )}
             {values.variants.map((v, i) => (
               <div key={i} className="grid grid-cols-[1fr_1fr_100px_80px_auto] gap-2">
                 <input
