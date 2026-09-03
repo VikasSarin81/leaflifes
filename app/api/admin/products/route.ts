@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/admin-auth";
+import { slugify } from "@/lib/slugify";
 
 export async function POST(req: NextRequest) {
   const session = await requireAdminApi();
@@ -18,10 +19,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Never trust the raw slug from the form — always normalize it
+    // server-side so a stray space or capital letter can't produce a
+    // broken product URL, regardless of what the client sent.
+    const cleanSlug = slugify(body.slug);
+    if (!cleanSlug) {
+      return NextResponse.json(
+        { error: "That slug isn't usable — try a simpler one (letters, numbers, hyphens)." },
+        { status: 400 }
+      );
+    }
     const product = await prisma.product.create({
       data: {
         name: body.name,
-        slug: body.slug,
+        slug: cleanSlug,
         categoryId: body.categoryId,
         shortDescription: body.shortDescription ?? "",
         description: body.description ?? "",

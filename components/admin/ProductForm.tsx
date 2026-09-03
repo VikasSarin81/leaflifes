@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import RichTextEditor from "./RichTextEditor";
+import { slugify } from "@/lib/slugify";
 
 type VariantInput = { id?: string; label: string; sku: string; price: string; stock: string };
 type ImageInput = { id?: string; url: string; publicId?: string; isPrimary: boolean };
@@ -35,6 +36,10 @@ export default function ProductForm({
   const router = useRouter();
   const [values, setValues] = useState<ProductFormValues>(initial);
   const [saving, setSaving] = useState(false);
+  // Only auto-generate the slug from the name for brand-new products. When
+  // editing an existing one, its slug is presumably already live/indexed
+  // somewhere, so don't silently rewrite it just because the name changed.
+  const [slugTouched, setSlugTouched] = useState(!!initial.id);
   const [error, setError] = useState<string | null>(null);
 
   function update<K extends keyof ProductFormValues>(key: K, val: ProductFormValues[K]) {
@@ -189,7 +194,16 @@ export default function ProductForm({
           <label className="text-sm text-ink/60">Product name</label>
           <input
             value={values.name}
-            onChange={(e) => update("name", e.target.value)}
+            onChange={(e) => {
+              const name = e.target.value;
+              update("name", name);
+              // Auto-fill the slug from the name, but only while the admin
+              // hasn't manually typed their own slug — once they've touched
+              // it directly, respect whatever they put there.
+              if (!slugTouched) {
+                update("slug", slugify(name));
+              }
+            }}
             className="rounded border border-line px-3 py-2"
           />
         </div>
@@ -198,9 +212,17 @@ export default function ProductForm({
           <label className="text-sm text-ink/60">Slug (URL)</label>
           <input
             value={values.slug}
-            onChange={(e) => update("slug", e.target.value)}
+            onChange={(e) => {
+              setSlugTouched(true);
+              update("slug", e.target.value);
+            }}
+            onBlur={(e) => update("slug", slugify(e.target.value))}
             className="rounded border border-line px-3 py-2"
           />
+          <p className="text-xs text-ink/40">
+            Auto-fills from the product name. Lowercase letters, numbers, and
+            hyphens only — spaces and capitals are cleaned up automatically.
+          </p>
         </div>
 
         <div className="grid gap-1">

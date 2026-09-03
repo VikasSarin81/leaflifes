@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
+import { slugify } from "@/lib/slugify";
 
 async function createCategory(formData: FormData) {
   "use server";
@@ -8,7 +9,7 @@ async function createCategory(formData: FormData) {
   if (!session) return;
 
   const name = String(formData.get("name") ?? "").trim();
-  const slug = String(formData.get("slug") ?? "").trim();
+  const slug = slugify(String(formData.get("slug") ?? ""));
   if (!name || !slug) return;
 
   await prisma.category.create({ data: { name, slug } });
@@ -22,7 +23,7 @@ async function updateCategory(formData: FormData) {
 
   const id = String(formData.get("id"));
   const name = String(formData.get("name") ?? "").trim();
-  const slug = String(formData.get("slug") ?? "").trim();
+  const slug = slugify(String(formData.get("slug") ?? ""));
   if (!id || !name || !slug) return;
 
   await prisma.category.update({ where: { id }, data: { name, slug } });

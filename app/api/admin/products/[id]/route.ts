@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/admin-auth";
+import { slugify } from "@/lib/slugify";
 
 export async function PATCH(
   req: NextRequest,
@@ -23,7 +24,7 @@ export async function PATCH(
         where: { id: params.id },
         data: {
           name: body.name,
-          slug: body.slug,
+          slug: slugify(body.slug),
           categoryId: body.categoryId,
           shortDescription: body.shortDescription ?? "",
           description: body.description ?? "",
