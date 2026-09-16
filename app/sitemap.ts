@@ -5,7 +5,11 @@ import { prisma } from "@/lib/prisma";
 // It runs on the server at request time (not frozen at build), so it
 // always reflects your current published products and categories.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = (process.env.NEXTAUTH_URL || "https://leaflifes.com").replace(/\/$/, "");
+  // No hardcoded fallback domain here on purpose — a literal string that
+  // happens to match your real NEXTAUTH_URL value trips Netlify's secrets
+  // scanner and fails the whole build. NEXTAUTH_URL is always set in every
+  // real environment (local, Netlify), so this is safe to require as-is.
+  const siteUrl = process.env.NEXTAUTH_URL!.replace(/\/$/, "");
 
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
