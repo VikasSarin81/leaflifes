@@ -1,8 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getCategories, getProducts } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Shop All Products",
+  description:
+    "Browse LEAFLIFE's full range of natural skin, hair, and wellness products — cold-pressed, hand-blended, no unnecessary ingredients.",
+};
 
 type Sort = "newest" | "price-asc" | "price-desc" | "rating";
 

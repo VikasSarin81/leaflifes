@@ -19,9 +19,22 @@ const body = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "LEAFLIFE — Born Natural, Stay Natural",
+  metadataBase: new URL(process.env.NEXTAUTH_URL!),
+  title: {
+    default: "LEAFLIFE — Born Natural, Stay Natural",
+    template: "%s | LEAFLIFE",
+  },
   description:
     "Cold-pressed, hand-blended, unnecessarily-labeled-natural skin, hair, and wellness products.",
+  openGraph: {
+    siteName: "LEAFLIFE",
+    type: "website",
+    images: [{ url: "/logo.jpeg", width: 1200, height: 630, alt: "LEAFLIFE" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/logo.jpeg"],
+  },
 };
 
 export default async function RootLayout({
