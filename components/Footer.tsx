@@ -27,6 +27,7 @@ export default function Footer() {
           <ul className="mt-3 space-y-2 text-ink/60">
             <li><Link href="/about" className="hover:text-moss">About us</Link></li>
             <li><Link href="/contact" className="hover:text-moss">Contact us</Link></li>
+            <li><Link href="/return-policy" className="hover:text-moss">Return &amp; Refund Policy</Link></li>
           </ul>
         </div>
 
