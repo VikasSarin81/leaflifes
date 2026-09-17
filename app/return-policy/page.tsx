@@ -13,10 +13,8 @@ export default function ReturnPolicyPage() {
           <h2 className="font-display text-xl text-ink">Returns</h2>
           <p className="mt-2">
             We accept returns within <strong>7 days</strong> of delivery for
-            unopened, unused products in their original packaging. Because
-            our products are personal care items, we're unable to accept
-            returns on opened or used products for hygiene reasons, unless
-            the product arrived damaged or defective.
+            even opened, used products in their original packaging.If you don't liked 
+            our product after useing ,you can return even used product.Just right back to us before sending.
           </p>
         </section>
 
