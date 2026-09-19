@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   const record = await prisma.verificationToken.findUnique({ where: { token } });
 
-  if (!record || record.expiresAt < new Date()) {
+  if (!record || record.purpose !== "EMAIL_VERIFY" || record.expiresAt < new Date()) {
     return NextResponse.redirect(`${siteUrl}/login?verify=expired`);
   }
 

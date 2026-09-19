@@ -45,3 +45,33 @@ export async function sendVerificationEmail(to: string, verifyUrl: string) {
     `,
   });
 }
+
+export async function sendPasswordResetEmail(to: string, resetUrl: string) {
+  if (!transporter) {
+    console.error(
+      "SMTP is not configured — password reset email was NOT sent to",
+      to
+    );
+    throw new Error("Email service is not configured.");
+  }
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: "Reset your password — LEAFLIFE",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1F2B1D;">Reset your password</h2>
+        <p>We received a request to reset your LEAFLIFE account password. Click below to set a new one.</p>
+        <p style="margin: 24px 0;">
+          <a href="${resetUrl}" style="background: #35492E; color: #F7F3E7; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Reset password
+          </a>
+        </p>
+        <p style="color: #666; font-size: 13px;">
+          This link expires in 1 hour. If you didn't request this, you can safely ignore this email — your password won't be changed.
+        </p>
+      </div>
+    `,
+  });
+}

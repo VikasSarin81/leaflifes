@@ -254,12 +254,18 @@ model ContactEnquiry {
   @@index([isResolved])
 }
 
+enum VerificationPurpose {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
 model VerificationToken {
-  id        String   @id @default(cuid())
+  id        String              @id @default(cuid())
   userId    String
-  token     String   @unique
+  token     String              @unique
+  purpose   VerificationPurpose @default(EMAIL_VERIFY)
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime            @default(now())
 
   @@index([token])
   @@index([userId])

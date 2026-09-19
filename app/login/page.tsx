@@ -86,6 +86,9 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             className="mt-1 w-full border border-ink/30 bg-parchment px-3 py-2"
           />
+          <Link href="/forgot-password" className="mt-1 inline-block text-xs text-ink/50 underline hover:text-moss">
+            Forgot your password?
+          </Link>
         </div>
 
         {error && <p className="text-sm text-clay">{error}</p>}

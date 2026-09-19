@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     data: {
       userId: user.id,
       token,
+      purpose: "EMAIL_VERIFY",
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     },
   });
