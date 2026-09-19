@@ -26,6 +26,7 @@ model User {
 
   cart          Cart?
   orders        Order[]
+  reviews       Review[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -63,6 +64,7 @@ model Product {
   variants          ProductVariant[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
+  reviews           Review[]
 
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -274,5 +276,31 @@ model Banner {
   buttonText  String
   buttonUrl   String
   updatedAt   DateTime @updatedAt
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+}
+
+model Review {
+  id         String       @id @default(cuid())
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  orderId    String       // the specific paid order that makes this a verified purchase
+  rating     Int          // 1-5
+  title      String?
+  comment    String
+  isVerified Boolean      @default(true) // always true today — every review requires a matching paid order
+  status     ReviewStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  // One review per customer per product, not per order — buying the same
+  // product twice shouldn't let someone post two separate reviews.
+  @@unique([productId, userId])
+  @@index([productId, status])
 }
 

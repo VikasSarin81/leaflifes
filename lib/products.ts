@@ -26,7 +26,14 @@ function toProduct(p: {
     price: unknown;
     stock: number;
   }[];
+  reviews: { rating: number }[];
 }): Product {
+  const reviewCount = p.reviews.length;
+  const rating =
+    reviewCount > 0
+      ? Math.round((p.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount) * 10) / 10
+      : 0;
+
   return {
     id: p.id,
     slug: p.slug,
@@ -39,8 +46,8 @@ function toProduct(p: {
     categorySlug: p.category.slug,
     mrp: Number(p.mrp),
     price: Number(p.price),
-    rating: 0, // wire up once the Review model exists (later phase)
-    reviewCount: 0,
+    rating,
+    reviewCount,
     tags: p.tags,
     isNewArrival: p.isNewArrival,
     isBestSeller: p.isBestSeller,
@@ -58,6 +65,9 @@ const productInclude = {
   category: true,
   images: true,
   variants: true,
+  // Only approved reviews count toward the visible rating/count — a
+  // pending or hidden review shouldn't move a product's public score.
+  reviews: { where: { status: "APPROVED" as const }, select: { rating: true } },
 } as const;
 
 export async function getCategories(): Promise<Category[]> {
@@ -98,7 +108,15 @@ export async function getProducts(filters?: {
         : undefined,
   });
 
-  return products.map(toProduct);
+  const mapped = products.map(toProduct);
+
+  // "rating" sort has to happen in JS since it's computed from the
+  // reviews relation, not a plain column Prisma can order by directly.
+  if (filters?.sort === "rating") {
+    mapped.sort((a, b) => b.rating - a.rating);
+  }
+
+  return mapped;
 }
 
 export async function getProductBySlug(
