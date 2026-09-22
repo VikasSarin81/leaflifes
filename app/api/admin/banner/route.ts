@@ -11,7 +11,12 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.headline || !body.description || !body.buttonText || !body.buttonUrl) {
+    const id = String(body.sectionId || "hero"); // "hero" (existing) or "story" (new)
+    if (id !== "hero" && id !== "story") {
+      return NextResponse.json({ error: "Invalid section." }, { status: 400 });
+    }
+
+    if (id === "hero" && (!body.headline || !body.description || !body.buttonText || !body.buttonUrl)) {
       return NextResponse.json(
         { error: "Headline, description, button text, and button link are all required." },
         { status: 400 }
@@ -19,9 +24,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     await prisma.banner.upsert({
-      where: { id: "hero" },
+      where: { id },
       create: {
-        id: "hero",
+        id,
         imageUrl: body.imageUrl || null,
         imagePublicId: body.imagePublicId || null,
         headline: body.headline,

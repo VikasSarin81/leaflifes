@@ -141,7 +141,16 @@ export default async function AdminCouponsPage() {
           <tbody>
             {coupons.map((c) => (
               <tr key={c.id} className="border-b border-line last:border-0">
-                <td className="p-3 font-medium">{c.code}</td>
+                <td className="p-3 font-medium">
+                  {c.code}
+                  <a
+                    href={`/promo/${c.code}`}
+                    target="_blank"
+                    className="ml-2 text-xs font-normal text-moss-dark underline"
+                  >
+                    Portal link
+                  </a>
+                </td>
                 <td className="p-3">
                   {c.discountType === "PERCENTAGE" ? `${c.percentage}%` : `₹${c.fixedAmount}`}
                   {c.maxDiscount ? ` (max ₹${c.maxDiscount})` : ""}

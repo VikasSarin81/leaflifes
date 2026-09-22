@@ -12,7 +12,7 @@ type BannerValues = {
   buttonUrl: string;
 };
 
-export default function BannerForm({ initial }: { initial: BannerValues }) {
+export default function BannerForm({ initial, sectionId }: { initial: BannerValues; sectionId: "hero" | "story" }) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
   const [uploading, setUploading] = useState(false);
@@ -75,7 +75,7 @@ export default function BannerForm({ initial }: { initial: BannerValues }) {
     const res = await fetch("/api/admin/banner", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify({ ...values, sectionId }),
     });
 
     setSaving(false);

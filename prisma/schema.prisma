@@ -23,6 +23,7 @@ model User {
   passwordHash  String
   role          Role      @default(CUSTOMER)
   emailVerified DateTime?
+  mustChangePassword Boolean @default(false)
 
   cart          Cart?
   orders        Order[]

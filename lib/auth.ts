@@ -41,6 +41,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
@@ -51,6 +52,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         // @ts-expect-error -- role is our own addition to the user object
         token.role = user.role;
+        // @ts-expect-error -- our own addition
+        token.mustChangePassword = user.mustChangePassword;
       }
       return token;
     },
@@ -58,6 +61,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as { id?: string }).id = token.id as string;
         (session.user as { role?: string }).role = token.role as string;
+        (session.user as { mustChangePassword?: boolean }).mustChangePassword =
+          token.mustChangePassword as boolean;
       }
       return session;
     },

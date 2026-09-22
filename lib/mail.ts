@@ -75,3 +75,29 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     `,
   });
 }
+
+export async function sendTempPasswordEmail(to: string, tempPassword: string) {
+  if (!transporter) {
+    console.error("SMTP is not configured — temp password email was NOT sent to", to);
+    throw new Error("Email service is not configured.");
+  }
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: "Your temporary password — LEAFLIFE",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1F2B1D;">Temporary password issued</h2>
+        <p>An admin reset your LEAFLIFE account password. Use this temporary password to log in:</p>
+        <p style="margin: 24px 0; font-size: 24px; font-weight: bold; letter-spacing: 4px; background: #F7F3E7; padding: 12px 20px; display: inline-block; border-radius: 4px;">
+          ${tempPassword}
+        </p>
+        <p>You'll be asked to set a new password immediately after logging in — this temporary one stops working once you do.</p>
+        <p style="color: #666; font-size: 13px;">
+          If you didn't expect this, contact us right away.
+        </p>
+      </div>
+    `,
+  });
+}
