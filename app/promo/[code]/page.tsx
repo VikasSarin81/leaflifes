@@ -12,18 +12,26 @@ export default async function PromoPortalPage({
 
   const coupon = await prisma.coupon.findUnique({
     where: { code },
-    include: {
-      usages: {
-        include: { order: { select: { total: true, createdAt: true } } },
-        orderBy: { usedAt: "desc" },
-      },
-    },
+    include: { usages: { orderBy: { usedAt: "desc" } } },
   });
 
   if (!coupon) notFound();
 
+  // CouponUsage only stores a plain orderId, not a Prisma relation to
+  // Order — fetch the matching orders separately rather than trying to
+  // `include` a relation that doesn't exist in the schema.
+  const orderIds = coupon.usages.map((u) => u.orderId);
+  const orders = await prisma.order.findMany({
+    where: { id: { in: orderIds } },
+    select: { id: true, total: true },
+  });
+  const orderTotalById = new Map(orders.map((o) => [o.id, Number(o.total)]));
+
   const orderCount = coupon.usages.length;
-  const totalRevenue = coupon.usages.reduce((sum, u) => sum + Number(u.order.total), 0);
+  const totalRevenue = coupon.usages.reduce(
+    (sum, u) => sum + (orderTotalById.get(u.orderId) ?? 0),
+    0
+  );
   const firstUsed = coupon.usages.at(-1)?.usedAt;
   const lastUsed = coupon.usages[0]?.usedAt;
 
