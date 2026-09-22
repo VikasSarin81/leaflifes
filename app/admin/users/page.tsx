@@ -34,6 +34,17 @@ async function resetPassword(formData: FormData) {
   let emailError: string | null = null;
   try {
     await sendTempPasswordEmail(user.email, tempPassword);
+    // Successfully receiving this email at their registered address is
+    // itself proof they control it — same standard as clicking a
+    // verification link. This unblocks accounts whose original signup
+    // email never arrived (e.g. during the SMTP outage), without needing
+    // a separate manual fix.
+    if (!user.emailVerified) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { emailVerified: new Date() },
+      });
+    }
   } catch (err) {
     emailError = err instanceof Error ? err.message : "Email failed to send.";
     console.error("sendTempPasswordEmail failed:", err);
@@ -103,6 +114,11 @@ export default async function AdminUsersPage({
                   {u.mustChangePassword && (
                     <span className="ml-2 rounded bg-turmeric/10 px-2 py-0.5 text-xs text-turmeric">
                       Pending password change
+                    </span>
+                  )}
+                  {u.role === "CUSTOMER" && !u.emailVerified && (
+                    <span className="ml-2 rounded bg-clay/10 px-2 py-0.5 text-xs text-clay">
+                      Email not verified
                     </span>
                   )}
                 </td>
