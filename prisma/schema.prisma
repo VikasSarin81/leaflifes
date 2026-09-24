@@ -114,6 +114,7 @@ model Cart {
   userId    String     @unique
   items     CartItem[]
   updatedAt DateTime   @updatedAt
+  reminderSentAt DateTime? // when we last emailed an abandoned-cart reminder — prevents re-sending every cron run
 }
 
 model CartItem {
@@ -154,6 +155,7 @@ model Order {
 
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
+  reviewRequestSentAt DateTime? // when we last emailed a "how was it?" review nudge
 
   subtotal      Decimal       @db.Decimal(10, 2)
   discount      Decimal       @db.Decimal(10, 2) @default(0)

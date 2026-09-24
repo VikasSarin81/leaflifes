@@ -101,3 +101,71 @@ export async function sendTempPasswordEmail(to: string, tempPassword: string) {
     `,
   });
 }
+
+export async function sendAbandonedCartEmail(
+  to: string,
+  items: { name: string; label: string; quantity: number }[]
+) {
+  if (!transporter) {
+    console.error("SMTP is not configured — abandoned cart email was NOT sent to", to);
+    return;
+  }
+
+  const itemsHtml = items
+    .map((i) => `<li>${i.name} — ${i.label} × ${i.quantity}</li>`)
+    .join("");
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: "You left something in your cart — LEAFLIFE",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1F2B1D;">Still thinking it over?</h2>
+        <p>These are still sitting in your cart:</p>
+        <ul>${itemsHtml}</ul>
+        <p style="margin: 24px 0;">
+          <a href="${process.env.NEXTAUTH_URL}/cart" style="background: #35492E; color: #F7F3E7; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Complete your order
+          </a>
+        </p>
+        <p style="color: #666; font-size: 13px;">
+          No rush — your cart will be here whenever you're ready.
+        </p>
+      </div>
+    `,
+  });
+}
+
+export async function sendReviewRequestEmail(
+  to: string,
+  items: { name: string; slug: string }[]
+) {
+  if (!transporter) {
+    console.error("SMTP is not configured — review request email was NOT sent to", to);
+    return;
+  }
+
+  const itemsHtml = items
+    .map(
+      (i) =>
+        `<li><a href="${process.env.NEXTAUTH_URL}/products/${i.slug}">${i.name}</a></li>`
+    )
+    .join("");
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    subject: "How's it working out?",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1F2B1D;">We'd love to hear from you</h2>
+        <p>It's been a little while since your order arrived. If you have a minute, a quick review helps other customers a lot:</p>
+        <ul>${itemsHtml}</ul>
+        <p style="color: #666; font-size: 13px;">
+          Only takes a minute, and it genuinely helps a small business like ours.
+        </p>
+      </div>
+    `,
+  });
+}
